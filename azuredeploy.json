@@ -14,8 +14,8 @@
 
     "managedResourceGroupName": "[concat('databricks-rg-', variables('workspaceName'), '-', uniqueString(varibales('workspaceName'), resourceGroup().id))]",
 
-    "openParenthesis " : "(",
-    "closeParenthesis " : ")",
+    "openParenthesis" : "(",
+    "closeParenthesis" : ")",
 
     "resourceGroupLen":"[length(resourceGroup().name)]",
     "charToTakeFromEnd":4,
