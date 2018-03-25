@@ -12,7 +12,7 @@
   },
   "variables": {
 
-    "managedResourceGroupName": "[concat('databricks-rg-', variables('workspaceName'), '-', uniqueString(varibales('workspaceName'), resourceGroup().id))]",
+
 
     "openParenthesis" : "(",
     "closeParenthesis" : ")",
@@ -35,6 +35,7 @@
     "clusterName":  "[concat(variables('prefixLowercase'), 'spark')]",
     "ASserverName": "[concat(variables('prefixLowercase'), 'aas'  )]",
     "workspaceName" : "[concat(variables('prefixLowercase'), 'databricks'  )]",
+    "managedResourceGroupName": "[concat(variables('databricks-rg-', variables('workspaceName'), '-', uniqueString(varibales('workspaceName'), resourceGroup().id))]",
     "eventHubNamespaceName": "[concat(variables('prefixLowercase'), 'eventhub'  )]",
 
     "clusterLoginUserName" : "admin",
