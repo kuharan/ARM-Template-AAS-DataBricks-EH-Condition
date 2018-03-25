@@ -7,24 +7,16 @@
       "type": "string"
     },
     "ASAdmin": {
-      "type": "string"
-    },
-    "workspaceName": {
-      "type": "string"
-    },
-    "pricingTier": {
-      "type": "string",
-      "defaultValue": "standard",
-      "allowedValues": ["standard", "premium"]
+    "type": "string"
     }
   },
   "variables": {
-    
-    "managedResourceGroupName": "[concat('databricks-rg-', parameters('workspaceName'), '-', uniqueString(parameters('workspaceName'), resourceGroup().id))]",
-    
-    "openParantheses" : "(",
-    "closeParantheses" : ")",
-    
+
+    "managedResourceGroupName": "[concat('databricks-rg-', variables('workspaceName'), '-', uniqueString(varibales('workspaceName'), resourceGroup().id))]",
+
+    "openParenthesis " : "(",
+    "closeParenthesis " : ")",
+
     "resourceGroupLen":"[length(resourceGroup().name)]",
     "charToTakeFromEnd":4,
     "resourceGroupNamePart1" : "[take(resourceGroup().name , 5)]",
@@ -32,36 +24,59 @@
     "resourceGroupName":"[concat(variables('resourceGroupNamePart1'),variables('resourceGroupNamePart2'))]",
 
     "resourcePrefix1" : "[replace(variables('resourceGroupName'),'-','')]",
-    "resourcePrefix2" : "[replace(variables('resourcePrefix1'),variables('openParantheses'),'')]",
-    "resourcePrefix3" : "[replace(variables('resourcePrefix2'),'.','')]", 
-    "resourcePrefix4" : "[replace(variables('resourcePrefix3'),variables('closeParantheses'),'')]", 
-    "resourcePrefix5" : "[replace(variables('resourcePrefix4'),'_','')]",    
-
+    "resourcePrefix2" : "[replace(variables('resourcePrefix1'),variables('openParenthesis'),'')]",
+    "resourcePrefix3" : "[replace(variables('resourcePrefix2'),'.','')]",
+    "resourcePrefix4" : "[replace(variables('resourcePrefix3'),variables('closeParenthesis'),'')]",
+    "resourcePrefix5" : "[replace(variables('resourcePrefix4'),'_','')]",
     "prefixLowercase" : "[toLower(variables('resourcePrefix5'))]",
+
     "storageName":  "[concat(variables('prefixLowercase'), 'blob' )]",
     "serverName":   "[concat(variables('prefixLowercase'), 'svr'  )]",
     "clusterName":  "[concat(variables('prefixLowercase'), 'spark')]",
     "ASserverName": "[concat(variables('prefixLowercase'), 'aas'  )]",
+    "workspaceName" : "[concat(variables('prefixLowercase'), 'databricks'  )]",
+    "eventHubNamespaceName": "[concat(variables('prefixLowercase'), 'eventhub'  )]",
+
     "clusterLoginUserName" : "admin",
     "sshUserName": "sshuser",
     "ASskuName" : "B1",
     "ASskuTier" : "Basic",
     "administratorLogin" : "sqladmin",
-    "password" : "Pass@word123"
-  },  
+    "password" : "Pass@word123",
+
+    "eventhubSku": "Standard",
+    "skuCapacity": 1,
+    "isAutoInflateEnabled": "True",
+    "maximumThroughputUnits": 10
+  },
   "resources": [
     {
+        "type": "Microsoft.EventHub/namespaces",
+        "sku": {
+          "name": "[variables('eventhubSku')]",
+          "tier": "[variables('eventhubSku')]",
+          "capacity": "[variables('skuCapacity')]"
+        },
+        "name": "[variables('eventHubNamespaceName')]",
+        "apiVersion": "2017-04-01",
+        "location": "[resourceGroup().location]",
+        "properties": {
+          "isAutoInflateEnabled": "[variables('isAutoInflateEnabled')]",
+          "maximumThroughputUnits": "[variables('maximumThroughputUnits')]"
+        }
+    },
+    {
         "type": "Microsoft.Databricks/workspaces",
-        "name": "[parameters('workspaceName')]",
+        "name": "[variables('workspaceName')]",
         "location": "[resourceGroup().location]",
         "apiVersion": "2018-04-01",
         "sku": {
-          "name": "[parameters('pricingTier')]"
+          "name": "standard"
         },
         "properties": {
-            "ManagedResourceGroupId": "[concat(subscription().id, '/resourceGroups/', variables('managedResourceGroupName'))]"
+          "ManagedResourceGroupId": "[concat(subscription().id, '/resourceGroups/', variables('managedResourceGroupName'))]"
         }
-    },  
+    },
     {
       "type": "Microsoft.Storage/storageAccounts",
       "sku": {
