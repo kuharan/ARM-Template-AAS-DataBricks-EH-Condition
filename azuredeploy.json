@@ -72,7 +72,7 @@
         "location": "[resourceGroup().location]",
         "apiVersion": "2018-04-01",
         "sku": {
-          "name": "standard"
+          "name": "premium"
         },
         "properties": {
           "ManagedResourceGroupId": "[concat(subscription().id, '/resourceGroups/', variables('managedResourceGroupName'))]"
