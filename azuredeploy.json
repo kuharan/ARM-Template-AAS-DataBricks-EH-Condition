@@ -10,6 +10,7 @@
     "type": "string"
     },
     "SelectPattern":{
+    "type": "string",
     "defaultValue": "Pattern1",
     "allowedValues": ["Pattern1" , "Pattern2" , "Pattern3"],
     }
