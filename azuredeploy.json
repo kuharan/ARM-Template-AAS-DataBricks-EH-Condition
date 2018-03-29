@@ -8,11 +8,14 @@
     },
     "ASAdmin": {
     "type": "string"
+    },
+    "SelectPattern":{
+    "defaultValue": "Pattern1",
+    "allowedValues": ["Pattern1" , "Pattern2" , "Pattern3"],
     }
+
   },
   "variables": {
-
-
 
     "openParenthesis" : "(",
     "closeParenthesis" : ")",
@@ -52,31 +55,33 @@
   },
   "resources": [
     {
-        "type": "Microsoft.EventHub/namespaces",
-        "sku": {
-          "name": "[variables('eventhubSku')]",
-          "tier": "[variables('eventhubSku')]",
-          "capacity": "[variables('skuCapacity')]"
-        },
-        "name": "[variables('eventHubNamespaceName')]",
-        "apiVersion": "2017-04-01",
-        "location": "[resourceGroup().location]",
-        "properties": {
-          "isAutoInflateEnabled": "[variables('isAutoInflateEnabled')]",
-          "maximumThroughputUnits": "[variables('maximumThroughputUnits')]"
-        }
+      "condition": "[equals(parameters('SelectPattern'),'Pattern3')]",
+      "type": "Microsoft.EventHub/namespaces",
+      "sku": {
+        "name": "[variables('eventhubSku')]",
+        "tier": "[variables('eventhubSku')]",
+        "capacity": "[variables('skuCapacity')]"
+      },
+      "name": "[variables('eventHubNamespaceName')]",
+      "apiVersion": "2017-04-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "isAutoInflateEnabled": "[variables('isAutoInflateEnabled')]",
+        "maximumThroughputUnits": "[variables('maximumThroughputUnits')]"
+      }
     },
     {
-        "type": "Microsoft.Databricks/workspaces",
-        "name": "[variables('workspaceName')]",
-        "location": "[resourceGroup().location]",
-        "apiVersion": "2018-04-01",
-        "sku": {
-          "name": "premium"
-        },
-        "properties": {
-          "ManagedResourceGroupId": "[concat(subscription().id, '/resourceGroups/', variables('managedResourceGroupName'))]"
-        }
+      "condition": "[equals(parameters('SelectPattern'),'Pattern2')]",
+      "type": "Microsoft.Databricks/workspaces",
+      "name": "[variables('workspaceName')]",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2018-04-01",
+      "sku": {
+        "name": "premium"
+      },
+      "properties": {
+        "ManagedResourceGroupId": "[concat(subscription().id, '/resourceGroups/', variables('managedResourceGroupName'))]"
+      }
     },
     {
       "type": "Microsoft.Storage/storageAccounts",
