@@ -84,8 +84,8 @@
           ],
           "properties": {
                 "messageRetentionInDays": 1
-          },
-        },
+          }
+        }
       ]
     },
     {
