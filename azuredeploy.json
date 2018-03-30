@@ -40,7 +40,7 @@
     "workspaceName" : "[concat(variables('prefixLowercase'), 'databricks' )]",
     "managedResourceGroupName": "[concat('databricks-rg-', variables('workspaceName'), '-', uniqueString(variables('workspaceName'), resourceGroup().id))]",
     "eventHubNamespaceName": "[concat(variables('prefixLowercase'), 'eventhubnamespace' )]",
-    "eventHubName": "[concat(variables('prefixLowercase'), 'eventhub' )]",
+    "eventHubName": "armoneclickeventhub",
 
 
     "clusterLoginUserName" : "admin",
