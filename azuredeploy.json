@@ -264,11 +264,11 @@
  "outputs": {
     "NamespaceConnectionString": {
       "type": "string",
-      "value": "[if(equals(parameters('SelectPattern'),'Pattern3') , listkeys(variables('authRuleResourceId'), '2017-04-01').primaryConnectionString , "" )]"
+      "value": "[if(equals(parameters('SelectPattern'),'Pattern3'), listkeys(variables('authRuleResourceId'), '2017-04-01').primaryConnectionString, json('null'))]"
     },
     "SharedAccessPolicyPrimaryKey": {
       "type": "string",
-      "value": "[if(equals(parameters('SelectPattern'),'Pattern3') , listkeys(variables('authRuleResourceId'), '2017-04-01').primaryKey  , "" )]"
+      "value": "[if(equals(parameters('SelectPattern'),'Pattern3'), listkeys(variables('authRuleResourceId'), '2017-04-01').primaryKey, json('null'))]"
     }
   }
 }
