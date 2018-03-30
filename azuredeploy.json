@@ -12,9 +12,8 @@
     "SelectPattern":{
     "type": "string",
     "defaultValue": "Pattern1",
-    "allowedValues": ["Pattern1" , "Pattern2" , "Pattern3"],
+    "allowedValues": ["Pattern1" , "Pattern2" , "Pattern3"]
     }
-
   },
   "variables": {
 
@@ -262,7 +261,6 @@
       }
    }
  ],
-
  "outputs": {
    "condition": "[equals(parameters('SelectPattern'),'Pattern3')]",
     "NamespaceConnectionString": {
