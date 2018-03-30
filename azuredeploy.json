@@ -263,10 +263,12 @@
    }
  ],
  "outputs": {
+    "condition": "[equals(parameters('SelectPattern'),'Pattern3')]",
     "NamespaceConnectionString": {
       "type": "string",
       "value": "[listkeys(variables('authRuleResourceId'), '2017-04-01').primaryConnectionString]"
     },
+    "condition": "[equals(parameters('SelectPattern'),'Pattern3')]",
     "SharedAccessPolicyPrimaryKey": {
       "type": "string",
       "value": "[listkeys(variables('authRuleResourceId'), '2017-04-01').primaryKey]"
