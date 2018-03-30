@@ -42,6 +42,8 @@
     "managedResourceGroupName": "[concat('databricks-rg-', variables('workspaceName'), '-', uniqueString(variables('workspaceName'), resourceGroup().id))]",
     "eventHubNamespaceName": "[concat(variables('prefixLowercase'), 'eventhubnamespace' )]",
     "eventHubName": "[concat(variables('prefixLowercase'), 'eventhub' )]",
+    "defaultSASKeyName": "RootManageSharedAccessKey",
+    "authRuleResourceId": "[resourceId('Microsoft.EventHub/namespaces/authorizationRules', variables('eventHubNamespaceName'), variables('defaultSASKeyName'))]",
 
     "clusterLoginUserName" : "admin",
     "sshUserName": "sshuser",
@@ -259,5 +261,15 @@
         }
       }
    }
-  ]
+ ],
+ "outputs": {
+    "NamespaceConnectionString": {
+      "type": "string",
+      "value": "[listkeys(variables('authRuleResourceId'), '2017-04-01').primaryConnectionString]"
+    },
+    "SharedAccessPolicyPrimaryKey": {
+      "type": "string",
+      "value": "[listkeys(variables('authRuleResourceId'), '2017-04-01').primaryKey]"
+    }
+  }
 }
