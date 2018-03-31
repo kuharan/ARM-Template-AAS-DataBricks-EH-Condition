@@ -73,6 +73,7 @@
         "maximumThroughputUnits": "[variables('maximumThroughputUnits')]"
       },
       "resources": [{
+          "condition": "[equals(parameters('SelectPattern'),'Pattern3')]",
           "apiVersion": "2017-04-01",
           "name": "[variables('eventHubName')]",
           "type": "EventHubs",
