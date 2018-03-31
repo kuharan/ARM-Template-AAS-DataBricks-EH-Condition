@@ -40,8 +40,9 @@
     "workspaceName" : "[concat(variables('prefixLowercase'), 'databricks' )]",
     "managedResourceGroupName": "[concat('databricks-rg-', variables('workspaceName'), '-', uniqueString(variables('workspaceName'), resourceGroup().id))]",
     "eventHubNamespaceName": "[concat(variables('prefixLowercase'), 'eventhubnamespace' )]",
-    "eventHubName": "armoneclickeventhub",
-
+    "eventHubName": "[concat(variables('prefixLowercase'), 'eventhub' )]",
+    "defaultSASKeyName": "RootManageSharedAccessKey",
+    "authRuleResourceId": "[if(equals(parameters('SelectPattern'),'Pattern3'), resourceId('Microsoft.EventHub/namespaces/authorizationRules', variables('eventHubNamespaceName'), variables('defaultSASKeyName')), json('null')) ]",
 
     "clusterLoginUserName" : "admin",
     "sshUserName": "sshuser",
@@ -259,5 +260,15 @@
         }
       }
    }
- ]
+ ],
+ "outputs": {
+    "NamespaceConnectionString": {
+      "type": "string",
+      "value": "[if(equals(parameters('SelectPattern'),'Pattern3'), listkeys(variables('authRuleResourceId'), '2017-04-01').primaryConnectionString, json('null'))]"
+    },
+    "SharedAccessPolicyPrimaryKey": {
+      "type": "string",
+      "value": "[if(equals(parameters('SelectPattern'),'Pattern3'), listkeys(variables('authRuleResourceId'), '2017-04-01').primaryKey, json('null'))]"
+    }
+  }
 }
