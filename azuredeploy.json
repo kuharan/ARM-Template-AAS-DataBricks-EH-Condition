@@ -72,20 +72,19 @@
         "isAutoInflateEnabled": "[variables('isAutoInflateEnabled')]",
         "maximumThroughputUnits": "[variables('maximumThroughputUnits')]"
       },
-        "resources": [
-          {
-            "condition": "[equals(parameters('SelectPattern'),'Pattern3')]",
-            "apiVersion": "2017-04-01",
-            "name": "[variables('eventHubName')]",
-            "type": "EventHubs",
-            "dependsOn": [
-              "[if(equals(parameters('SelectPattern'),'Pattern3'),concat('Microsoft.EventHub/namespaces/', variables('eventHubNamespaceName')),json('null'))]"
-            ],
-            "properties": {
-              "messageRetentionInDays": 1
-            }
-          }
-        ]
+
+    },
+    {
+      "condition": "[equals(parameters('SelectPattern'),'Pattern3')]",
+      "apiVersion": "2017-04-01",
+      "name": "[variables('eventHubName')]",
+      "type": "EventHubs",
+      "dependsOn": [
+        "[concat('Microsoft.EventHub/namespaces/', variables('eventHubNamespaceName'))]"
+      ],
+      "properties": {
+        "messageRetentionInDays": 1
+      }
     },
     {
       "condition": "[or(equals(parameters('SelectPattern'),'Pattern2'),equals(parameters('SelectPattern'),'Pattern3'))]",
