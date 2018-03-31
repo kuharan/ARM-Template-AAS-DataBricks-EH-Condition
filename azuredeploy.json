@@ -71,8 +71,7 @@
       "properties": {
         "isAutoInflateEnabled": "[variables('isAutoInflateEnabled')]",
         "maximumThroughputUnits": "[variables('maximumThroughputUnits')]"
-      },
-
+      }
     },
     {
       "condition": "[equals(parameters('SelectPattern'),'Pattern3')]",
