@@ -58,7 +58,7 @@
   },
   "resources": [
     {
-      "condition": "[equals(parameters('SelectPattern'),'Pattern3')]",
+      "condition": "[or(equals(parameters('SelectPattern'),'Pattern3'),equals(parameters('SelectPattern'),'Pattern2'))]",
       "type": "Microsoft.EventHub/namespaces",
       "sku": {
         "name": "[variables('eventhubSku')]",
