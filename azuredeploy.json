@@ -263,11 +263,11 @@
  "outputs": {
     "NamespaceConnectionString": {
       "type": "string",
-      "value": "[if(bool(variables('authRuleResourceId')), listkeys(variables('authRuleResourceId'), '2017-04-01').primaryConnectionString, json('null'))]"
+      "value": "[if(bool(variables('authRuleResourceId')), listkeys(variables('authRuleResourceId'), '2017-04-01').primaryConnectionString, 'null')]"
     },
     "SharedAccessPolicyPrimaryKey": {
       "type": "string",
-      "value": "[if(bool(variables('authRuleResourceId')),'Pattern3'), listkeys(variables('authRuleResourceId'), '2017-04-01').primaryKey, json('null'))]"
+      "value": "[if(bool(variables('authRuleResourceId')),'Pattern3'), listkeys(variables('authRuleResourceId'), '2017-04-01').primaryKey, 'null')]"
     }
   }
 }
