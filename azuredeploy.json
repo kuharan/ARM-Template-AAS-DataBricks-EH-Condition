@@ -42,7 +42,7 @@
     "eventHubNamespaceName": "[concat(variables('prefixLowercase'), 'eventhubnamespace' )]",
     "eventHubName": "[concat(variables('prefixLowercase'), 'eventhub' )]",
     "defaultSASKeyName": "RootManageSharedAccessKey",
-    "authRuleResourceId": "[if(equals(parameters('SelectPattern'),'Pattern3'), resourceId('Microsoft.EventHub/namespaces/authorizationRules',variables('eventHubNamespaceName'),variables('defaultSASKeyName')), string('null'))]",
+    "authRuleResourceId": "[if(equals(parameters('SelectPattern'),'Pattern3'), resourceId('Microsoft.EventHub/namespaces/authorizationRules',variables('eventHubNamespaceName'),variables('defaultSASKeyName')), string("null"))]",
 
     "clusterLoginUserName" : "admin",
     "sshUserName": "sshuser",
