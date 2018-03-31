@@ -58,7 +58,7 @@
   },
   "resources": [
     {
-      "condition": "[or(equals(parameters('SelectPattern'),'Pattern3'),equals(parameters('SelectPattern'),'Pattern2'))]",
+      "condition": "[equals(parameters('SelectPattern'),'Pattern3')]",
       "type": "Microsoft.EventHub/namespaces",
       "sku": {
         "name": "[variables('eventhubSku')]",
@@ -88,7 +88,7 @@
       ]
     },
     {
-      "condition": "[equals(parameters('SelectPattern'),'Pattern2')]",
+      "condition": "[or(equals(parameters('SelectPattern'),'Pattern2'),equals(parameters('SelectPattern'),'Pattern3'))]",
       "type": "Microsoft.Databricks/workspaces",
       "name": "[variables('workspaceName')]",
       "location": "[resourceGroup().location]",
