@@ -267,7 +267,7 @@
     },
     "SharedAccessPolicyPrimaryKey": {
       "type": "string",
-      "value": "[if(bool(variables('authRuleResourceId')),'Pattern3'), listkeys(variables('authRuleResourceId'), '2017-04-01').primaryKey, 'null')]"
+      "value": "[if(bool(variables('authRuleResourceId')), listkeys(variables('authRuleResourceId'), '2017-04-01').primaryKey, 'null')]"
     }
   }
 }
