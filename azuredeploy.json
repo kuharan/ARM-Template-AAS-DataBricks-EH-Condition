@@ -1,263 +1,271 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {
-    "location": {
-      "defaultValue": "west us 2",
-      "type": "string"
-    },
-    "ASAdmin": {
-    "type": "string"
-    },
-    "SelectPattern":{
-    "type": "string",
-    "defaultValue": "Pattern1",
-    "allowedValues": ["Pattern1" , "Pattern2" , "Pattern3"]
-    }
-  },
-  "variables": {
-
-    "openParenthesis" : "(",
-    "closeParenthesis" : ")",
-
-    "resourceGroupLen":"[length(resourceGroup().name)]",
-    "charToTakeFromEnd":4,
-    "resourceGroupNamePart1" : "[take(resourceGroup().name , 5)]",
-    "resourceGroupNamePart2" : "[skip(resourceGroup().name, sub(variables('resourceGroupLen'),variables('charToTakeFromEnd')))]",
-    "resourceGroupName":"[concat(variables('resourceGroupNamePart1'),variables('resourceGroupNamePart2'))]",
-
-    "resourcePrefix1" : "[replace(variables('resourceGroupName'),'-','')]",
-    "resourcePrefix2" : "[replace(variables('resourcePrefix1'),variables('openParenthesis'),'')]",
-    "resourcePrefix3" : "[replace(variables('resourcePrefix2'),'.','')]",
-    "resourcePrefix4" : "[replace(variables('resourcePrefix3'),variables('closeParenthesis'),'')]",
-    "resourcePrefix5" : "[replace(variables('resourcePrefix4'),'_','')]",
-    "prefixLowercase" : "[toLower(variables('resourcePrefix5'))]",
-
-    "storageName":  "[concat(variables('prefixLowercase'), 'blob' )]",
-    "serverName":   "[concat(variables('prefixLowercase'), 'svr'  )]",
-    "clusterName":  "[concat(variables('prefixLowercase'), 'spark')]",
-    "ASserverName": "[concat(variables('prefixLowercase'), 'aas'  )]",
-    "workspaceName" : "[concat(variables('prefixLowercase'), 'databricks' )]",
-    "managedResourceGroupName": "[concat('databricks-rg-', variables('workspaceName'), '-', uniqueString(variables('workspaceName'), resourceGroup().id))]",
-    "eventHubNamespaceName": "[concat(variables('prefixLowercase'), 'eventhubnamespace' )]",
-    "eventHubName": "[concat(variables('prefixLowercase'), 'eventhub' )]",
-    "defaultSASKeyName": "RootManageSharedAccessKey",
-    "authRuleResourceId": "[resourceId('Microsoft.EventHub/namespaces/authorizationRules',variables('eventHubNamespaceName'),variables('defaultSASKeyName'))]",
-
-    "clusterLoginUserName" : "admin",
-    "sshUserName": "sshuser",
-    "ASskuName" : "B1",
-    "ASskuTier" : "Basic",
-    "administratorLogin" : "sqladmin",
-    "password" : "Pass@word123",
-
-    "eventhubSku": "Standard",
-    "skuCapacity": 1,
-    "isAutoInflateEnabled": "True",
-    "maximumThroughputUnits": 10
-  },
-  "resources": [
-    {
-      "condition": "[equals(parameters('SelectPattern'),'Pattern3')]",
-      "type": "Microsoft.EventHub/namespaces",
-      "sku": {
-        "name": "[variables('eventhubSku')]",
-        "tier": "[variables('eventhubSku')]",
-        "capacity": "[variables('skuCapacity')]"
-      },
-      "name": "[variables('eventHubNamespaceName')]",
-      "apiVersion": "2017-04-01",
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "isAutoInflateEnabled": "[variables('isAutoInflateEnabled')]",
-        "maximumThroughputUnits": "[variables('maximumThroughputUnits')]"
-      },
-      "resources": [
-        {
-          "condition": "[equals(parameters('SelectPattern'),'Pattern3')]",
-          "apiVersion": "2017-04-01",
-          "name": "[variables('eventHubName')]",
-          "type": "EventHubs",
-          "dependsOn": [
-            "[concat('Microsoft.EventHub/namespaces/', variables('eventHubNamespaceName'))]"
-          ],
-          "properties": {
-            "messageRetentionInDays": 1
-          }
-        }
-      ]
-    },
-    {
-      "condition": "[or(equals(parameters('SelectPattern'),'Pattern2'),equals(parameters('SelectPattern'),'Pattern3'))]",
-      "type": "Microsoft.Databricks/workspaces",
-      "name": "[variables('workspaceName')]",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2018-04-01",
-      "sku": {
-        "name": "premium"
-      },
-      "properties": {
-        "ManagedResourceGroupId": "[concat(subscription().id, '/resourceGroups/', variables('managedResourceGroupName'))]"
-      }
-    },
-    {
-      "type": "Microsoft.Storage/storageAccounts",
-      "sku": {
-        "name": "Standard_LRS",
-        "tier": "Standard"
-      },
-      "kind": "Storage",
-      "name": "[variables('storageName')]",
-      "apiVersion": "2017-10-01",
-      "location": "[parameters('location')]",
-      "tags": {},
-      "scale": null,
-      "properties": {
-        "networkAcls": {
-          "bypass": "AzureServices",
-          "virtualNetworkRules": [],
-          "ipRules": [],
-          "defaultAction": "Allow"
-        },
-        "supportsHttpsTrafficOnly": false,
-        "encryption": {
-          "services": {
-            "file": {
-              "enabled": true
-            },
-            "blob": {
-              "enabled": true
-            }
-          },
-          "keySource": "Microsoft.Storage"
-        }
-      },
-      "dependsOn": []
-    },
-    {
-      "type": "Microsoft.Sql/servers",
-      "name": "[variables('serverName')]",
-      "apiVersion": "2014-04-01-preview",
-      "location": "[parameters('location')]",
-      "properties": {
-          "administratorLogin": "[variables('administratorLogin')]",
-          "administratorLoginPassword": "[variables('password')]"
-      },
-      "resources": [
-          {
-              "type": "databases",
-              "name": "sqldatawarehouse",
-              "apiVersion": "2014-04-01-preview",
-              "location": "[parameters('location')]",
-              "properties": {
-                  "edition": "DataWarehouse",
-                  "requestedServiceObjectiveName": "DW100",
-                  "collation": "SQL_Latin1_General_CP1_CI_AS"
-              },
-              "dependsOn": [
-                  "[concat('Microsoft.Sql/servers/', variables('serverName'))]"
-              ]
-          },
-          {
-              "type": "firewallrules",
-              "name": "AllowAllWindowsAzureIps",
-              "apiVersion": "2014-04-01-preview",
-              "location": "[parameters('location')]",
-              "properties": {
-                  "endIpAddress": "255.255.255.255",
-                  "startIpAddress": "0.0.0.0"
-              },
-              "dependsOn": [
-                  "[concat('Microsoft.Sql/servers/', variables('serverName'))]"
-              ]
-          }
-      ]
-    },
-    {
-      "type": "Microsoft.HDInsight/clusters",
-      "name": "[variables('clusterName')]",
-      "apiVersion": "2015-03-01-preview",
-      "location": "[parameters('location')]",
-      "properties": {
-          "clusterVersion": "3.6",
-          "osType": "Linux",
-          "tier": "standard",
-          "clusterDefinition": {
-              "kind": "spark",
-              "configurations": {
-                  "gateway": {
-                      "restAuthCredential.isEnabled": true,
-                      "restAuthCredential.username": "[variables('clusterLoginUserName')]",
-                      "restAuthCredential.password": "[variables('password')]"
-                  }
-              }
-          },
-          "storageProfile": {
-              "storageaccounts": [
-                  {
-                      "name": "[concat(variables('storageName') , '.blob.core.windows.net')]",
-                      "isDefault": true,
-                      "container": "armhdinsight-2018-03-05t07-53-30-522z",
-                      "key": "[listKeys(variables('storageName') , '2015-05-01-preview').key1]"
-                  }
-              ]
-          },
-          "computeProfile": {
-              "roles": [
-                  {
-                      "name": "headnode",
-                      "minInstanceCount": 1,
-                      "targetInstanceCount": 2,
-                      "hardwareProfile": {
-                          "vmSize": "Standard_D12_V2"
-                      },
-                      "osProfile": {
-                          "linuxOperatingSystemProfile": {
-                              "username": "[variables('sshUserName')]",
-                              "password": "[variables('password')]"
-                          }
-                      },
-                      "virtualNetworkProfile": null,
-                      "scriptActions": []
-                  },
-                  {
-                      "name": "workernode",
-                      "minInstanceCount": 1,
-                      "targetInstanceCount": 2,
-                      "hardwareProfile": {
-                          "vmSize": "Standard_D13_V2"
-                      },
-                      "osProfile": {
-                          "linuxOperatingSystemProfile": {
-                              "username": "[variables('sshUserName')]",
-                              "password": "[variables('password')]"
-                          }
-                      },
-                      "virtualNetworkProfile": null,
-                      "scriptActions": []
-                  }
-              ]
-          }
-      },
-      "dependsOn": []
-    },
-    {
-      "type": "Microsoft.AnalysisServices/servers",
-      "name": "[variables('ASserverName')]",
-      "apiVersion": "2016-05-16",
-      "location": "[parameters('location')]",
-      "sku": {
-        "name": "[variables('ASskuName')]",
-        "tier": "[variables('ASskuTier')]"
-      },
-      "tags": {},
-      "properties": {
-        "ASAdministrators": {
-          "members": [
-            "[parameters('ASAdmin')]"
-          ]
-        }
-      }
-   }
- ]
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"location": {
+			"defaultValue": "west us 2",
+			"type": "string"
+		},
+		"ASAdmin": {
+			"type": "string"
+		},
+		"SelectPattern": {
+			"type": "string",
+			"defaultValue": "Pattern1",
+			"allowedValues": [
+				"Pattern1",
+				"Pattern2",
+				"Pattern3"
+			]
+		}
+	},
+	"variables": {
+		"openParenthesis": "(",
+		"closeParenthesis": ")",
+		"resourceGroupLen": "[length(resourceGroup().name)]",
+		"charToTakeFromEnd": 4,
+		"resourceGroupNamePart1": "[take(resourceGroup().name , 5)]",
+		"resourceGroupNamePart2": "[skip(resourceGroup().name, sub(variables('resourceGroupLen'),variables('charToTakeFromEnd')))]",
+		"resourceGroupName": "[concat(variables('resourceGroupNamePart1'),variables('resourceGroupNamePart2'))]",
+		"resourcePrefix1": "[replace(variables('resourceGroupName'),'-','')]",
+		"resourcePrefix2": "[replace(variables('resourcePrefix1'),variables('openParenthesis'),'')]",
+		"resourcePrefix3": "[replace(variables('resourcePrefix2'),'.','')]",
+		"resourcePrefix4": "[replace(variables('resourcePrefix3'),variables('closeParenthesis'),'')]",
+		"resourcePrefix5": "[replace(variables('resourcePrefix4'),'_','')]",
+		"prefixLowercase": "[toLower(variables('resourcePrefix5'))]",
+		"storageName": "[concat(variables('prefixLowercase'), 'blob' )]",
+		"serverName": "[concat(variables('prefixLowercase'), 'svr'  )]",
+		"clusterName": "[concat(variables('prefixLowercase'), 'spark')]",
+		"ASserverName": "[concat(variables('prefixLowercase'), 'aas'  )]",
+		"workspaceName": "[concat(variables('prefixLowercase'), 'databricks' )]",
+		"managedResourceGroupName": "[concat('databricks-rg-', variables('workspaceName'), '-', uniqueString(variables('workspaceName'), resourceGroup().id))]",
+		"eventHubNamespaceName": "[concat(variables('prefixLowercase'), 'eventhubnamespace' )]",
+		"eventHubName": "[concat(variables('prefixLowercase'), 'eventhub' )]",
+		"defaultSASKeyName": "RootManageSharedAccessKey",
+		"authRuleResourceId": "[resourceId('Microsoft.EventHub/namespaces/authorizationRules',variables('eventHubNamespaceName'),variables('defaultSASKeyName'))]",
+		"clusterLoginUserName": "admin",
+		"sshUserName": "sshuser",
+		"ASskuName": "B1",
+		"ASskuTier": "Basic",
+		"administratorLogin": "sqladmin",
+		"password": "Pass@word123",
+		"eventhubSku": "Standard",
+		"skuCapacity": 1,
+		"isAutoInflateEnabled": "True",
+		"maximumThroughputUnits": 10
+	},
+	"resources": [
+		{
+			"condition": "[equals(parameters('SelectPattern'),'Pattern3')]",
+			"type": "Microsoft.EventHub/namespaces",
+			"sku": {
+				"name": "[variables('eventhubSku')]",
+				"tier": "[variables('eventhubSku')]",
+				"capacity": "[variables('skuCapacity')]"
+			},
+			"name": "[variables('eventHubNamespaceName')]",
+			"apiVersion": "2017-04-01",
+			"location": "[resourceGroup().location]",
+			"properties": {
+				"isAutoInflateEnabled": "[variables('isAutoInflateEnabled')]",
+				"maximumThroughputUnits": "[variables('maximumThroughputUnits')]"
+			},
+			"resources": [
+				{
+					"condition": "[equals(parameters('SelectPattern'),'Pattern3')]",
+					"apiVersion": "2017-04-01",
+					"name": "[variables('eventHubName')]",
+					"type": "EventHubs",
+					"dependsOn": [
+						"[concat('Microsoft.EventHub/namespaces/', variables('eventHubNamespaceName'))]"
+					],
+					"properties": {
+						"messageRetentionInDays": 1
+					}
+				}
+			]
+		},
+		{
+			"condition": "[or(equals(parameters('SelectPattern'),'Pattern2'),equals(parameters('SelectPattern'),'Pattern3'))]",
+			"type": "Microsoft.Databricks/workspaces",
+			"name": "[variables('workspaceName')]",
+			"location": "[resourceGroup().location]",
+			"apiVersion": "2018-04-01",
+			"sku": {
+				"name": "premium"
+			},
+			"properties": {
+				"ManagedResourceGroupId": "[concat(subscription().id, '/resourceGroups/', variables('managedResourceGroupName'))]"
+			}
+		},
+		{
+			"type": "Microsoft.Storage/storageAccounts",
+			"sku": {
+				"name": "Standard_LRS",
+				"tier": "Standard"
+			},
+			"kind": "Storage",
+			"name": "[variables('storageName')]",
+			"apiVersion": "2017-10-01",
+			"location": "[parameters('location')]",
+			"tags": {},
+			"scale": null,
+			"properties": {
+				"networkAcls": {
+					"bypass": "AzureServices",
+					"virtualNetworkRules": [],
+					"ipRules": [],
+					"defaultAction": "Allow"
+				},
+				"supportsHttpsTrafficOnly": false,
+				"encryption": {
+					"services": {
+						"file": {
+							"enabled": true
+						},
+						"blob": {
+							"enabled": true
+						}
+					},
+					"keySource": "Microsoft.Storage"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"type": "Microsoft.Sql/servers",
+			"name": "[variables('serverName')]",
+			"apiVersion": "2014-04-01-preview",
+			"location": "[parameters('location')]",
+			"properties": {
+				"administratorLogin": "[variables('administratorLogin')]",
+				"administratorLoginPassword": "[variables('password')]"
+			},
+			"resources": [
+				{
+					"type": "databases",
+					"name": "sqldatawarehouse",
+					"apiVersion": "2014-04-01-preview",
+					"location": "[parameters('location')]",
+					"properties": {
+						"edition": "DataWarehouse",
+						"requestedServiceObjectiveName": "DW100",
+						"collation": "SQL_Latin1_General_CP1_CI_AS"
+					},
+					"dependsOn": [
+						"[concat('Microsoft.Sql/servers/', variables('serverName'))]"
+					]
+				},
+				{
+					"type": "firewallrules",
+					"name": "AllowAllWindowsAzureIps",
+					"apiVersion": "2014-04-01-preview",
+					"location": "[parameters('location')]",
+					"properties": {
+						"endIpAddress": "255.255.255.255",
+						"startIpAddress": "0.0.0.0"
+					},
+					"dependsOn": [
+						"[concat('Microsoft.Sql/servers/', variables('serverName'))]"
+					]
+				}
+			]
+		},
+		{
+			"type": "Microsoft.HDInsight/clusters",
+			"name": "[variables('clusterName')]",
+			"apiVersion": "2015-03-01-preview",
+			"location": "[parameters('location')]",
+			"properties": {
+				"clusterVersion": "3.6",
+				"osType": "Linux",
+				"tier": "standard",
+				"clusterDefinition": {
+					"kind": "spark",
+					"configurations": {
+						"gateway": {
+							"restAuthCredential.isEnabled": true,
+							"restAuthCredential.username": "[variables('clusterLoginUserName')]",
+							"restAuthCredential.password": "[variables('password')]"
+						}
+					}
+				},
+				"storageProfile": {
+					"storageaccounts": [
+						{
+							"name": "[concat(variables('storageName') , '.blob.core.windows.net')]",
+							"isDefault": true,
+							"container": "armhdinsight-2018-03-05t07-53-30-522z",
+							"key": "[listKeys(variables('storageName') , '2015-05-01-preview').key1]"
+						}
+					]
+				},
+				"computeProfile": {
+					"roles": [
+						{
+							"name": "headnode",
+							"minInstanceCount": 1,
+							"targetInstanceCount": 2,
+							"hardwareProfile": {
+								"vmSize": "Standard_D12_V2"
+							},
+							"osProfile": {
+								"linuxOperatingSystemProfile": {
+									"username": "[variables('sshUserName')]",
+									"password": "[variables('password')]"
+								}
+							},
+							"virtualNetworkProfile": null,
+							"scriptActions": []
+						},
+						{
+							"name": "workernode",
+							"minInstanceCount": 1,
+							"targetInstanceCount": 2,
+							"hardwareProfile": {
+								"vmSize": "Standard_D13_V2"
+							},
+							"osProfile": {
+								"linuxOperatingSystemProfile": {
+									"username": "[variables('sshUserName')]",
+									"password": "[variables('password')]"
+								}
+							},
+							"virtualNetworkProfile": null,
+							"scriptActions": []
+						}
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"type": "Microsoft.AnalysisServices/servers",
+			"name": "[variables('ASserverName')]",
+			"apiVersion": "2016-05-16",
+			"location": "[parameters('location')]",
+			"sku": {
+				"name": "[variables('ASskuName')]",
+				"tier": "[variables('ASskuTier')]"
+			},
+			"tags": {},
+			"properties": {
+				"ASAdministrators": {
+					"members": [
+						"[parameters('ASAdmin')]"
+					]
+				}
+			}
+		}
+	],
+	"outputs": {
+		"NamespaceConnectionString": {
+			"type": "string",
+			"value": "[if(equals(parameters('SelectPattern'),'Pattern3'), listkeys(variables('authRuleResourceId'), '2017-04-01').primaryConnectionString, json('null'))]"
+		},
+		"SharedAccessPolicyPrimaryKey": {
+			"type": "string",
+			"value": "[if(equals(parameters('SelectPattern'),'Pattern3'), listkeys(variables('authRuleResourceId'), '2017-04-01').primaryKey, json('null'))]"
+		}
+	}
 }
