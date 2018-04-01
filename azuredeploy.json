@@ -40,8 +40,9 @@
     "workspaceName" : "[concat(variables('prefixLowercase'), 'databricks' )]",
     "managedResourceGroupName": "[concat('databricks-rg-', variables('workspaceName'), '-', uniqueString(variables('workspaceName'), resourceGroup().id))]",
     "eventHubNamespaceName": "[concat(variables('prefixLowercase'), 'eventhubnamespace' )]",
-    "eventHubName": "armoneclickeventhub",
-
+    "eventHubName": "[concat(variables('prefixLowercase'), 'eventhub' )]",
+    "defaultSASKeyName": "RootManageSharedAccessKey",
+    "authRuleResourceId": "[resourceId('Microsoft.EventHub/namespaces/authorizationRules',variables('eventHubNamespaceName'),variables('defaultSASKeyName'))]",
 
     "clusterLoginUserName" : "admin",
     "sshUserName": "sshuser",
@@ -71,7 +72,6 @@
         "isAutoInflateEnabled": "[variables('isAutoInflateEnabled')]",
         "maximumThroughputUnits": "[variables('maximumThroughputUnits')]"
       },
-
       "resources": [
         {
           "condition": "[equals(parameters('SelectPattern'),'Pattern3')]",
@@ -82,13 +82,13 @@
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubNamespaceName'))]"
           ],
           "properties": {
-                "messageRetentionInDays": 1
+            "messageRetentionInDays": 1
           }
         }
       ]
     },
     {
-      "condition": "[equals(parameters('SelectPattern'),'Pattern2')]",
+      "condition": "[or(equals(parameters('SelectPattern'),'Pattern2'),equals(parameters('SelectPattern'),'Pattern3'))]",
       "type": "Microsoft.Databricks/workspaces",
       "name": "[variables('workspaceName')]",
       "location": "[resourceGroup().location]",
